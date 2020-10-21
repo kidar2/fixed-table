@@ -1,0 +1,226 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+ <head>	
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<style>
+		
+
+		.fixed-table
+		{
+			position: relative;
+			overflow: hidden;
+		}
+
+		.fixed-table .cont
+		{
+			position: absolute;
+			overflow: hidden;
+			background: #fff;
+		}
+
+
+		.fixed-table td
+		{
+			border-left: 1px solid #eee;
+			border-bottom: 1px solid #eee;
+			padding: 10px;
+			white-space: nowrap;
+		}
+
+		.fixed-table .bottom-scroll
+		{
+			position: absolute;
+			bottom: 0;
+			overflow-x: auto;
+			overflow-y: hidden;
+			z-index: 3;
+		}
+
+		.fixed-table .right-scroll
+		{
+			position: absolute;
+			right: 0;
+			overflow-y: auto;
+			overflow-x: hidden;
+			z-index: 3;
+		}
+
+		.fixed-table .corner
+		{
+			position: absolute;
+			z-index: 4;
+    		background: #fff;
+		}
+
+	</style>
+ 
+ </head>
+ <body>
+		
+ </body>
+ 
+
+<script>
+	
+
+	function createTable(container, json, width, height)
+	{
+		function onScroll()
+		{
+			var scroll_left_part = document.getElementById("scroll_left_part");
+			var scroll_part = document.getElementById("scroll_part");
+			var scroll_top_part = document.getElementById("scroll_top_part");
+			scroll_left_part.scrollTop = scroll_part.scrollTop;
+			scroll_top_part.scrollLeft = scroll_part.scrollLeft;
+		}
+
+		var table = document.createElement("table");
+		table.setAttribute("cellspacing", "0");
+		table.setAttribute("cellpadding", "0");
+		var fixedRowCount = json.topHeader.length;
+		var fixedColCount = json.leftHeader[0].length;
+
+		//create fixedRows
+		for (var rowNum=0; rowNum < fixedRowCount;rowNum++)
+		{
+			var row = table.insertRow();
+			for (var i=0; i < fixedColCount;i++)		//corner
+				row.insertCell();
+
+			var rowData =  json.topHeader[rowNum];
+			for (var colNum=0; colNum < rowData.length;colNum++)
+			{
+				row.insertCell().innerHTML = rowData[colNum]; 
+			}
+		}
+
+		for (var rowNum=0; rowNum < json.data.length;rowNum++)
+		{
+			var row = table.insertRow();
+			var colData =  json.leftHeader[rowNum];
+
+			for (var colNum=0; colNum < colData.length;colNum++)  //fixed columns
+			{
+				row.insertCell().innerHTML = colData[colNum];
+			}
+
+			var data =  json.data[rowNum];
+			for (var colNum=0; colNum < data.length;colNum++)
+			{
+				var cell = row.insertCell().innerHTML = '<input type="checkbox" />';
+			}
+		}
+
+
+	
+		
+
+		var contDiv = document.createElement("div");
+		contDiv.className = "cont";
+		contDiv.appendChild(table);
+
+		var resultDiv = document.createElement("div");
+		resultDiv.className = 'fixed-table';
+		var topDiv = contDiv.cloneNode(true);
+		
+		var leftDiv = contDiv.cloneNode(true);
+		resultDiv.appendChild(topDiv);
+		resultDiv.appendChild(leftDiv);
+		resultDiv.appendChild(contDiv);
+
+		topDiv.style.zIndex = 2;
+		leftDiv.style.zIndex = 1;
+
+		contDiv.className += " scroll_part";
+
+		resultDiv.style.width = width + "px";
+		resultDiv.style.height = height + "px";
+		contDiv.style.height = height + "px";
+		contDiv.style.width = width + "px";
+
+		container.appendChild(resultDiv);
+
+		
+
+		//bottom Scroll
+		var calced_width = table.offsetWidth;
+		var bottomScroll = document.createElement("div");
+		bottomScroll.className = "bottom-scroll";
+		bottomScroll.style.width = width + "px";
+		var contentBottomScroll = document.createElement("div");
+		contentBottomScroll.style.width = calced_width + "px";
+		contentBottomScroll.style.height = "1px";
+		bottomScroll.appendChild(contentBottomScroll);
+		resultDiv.appendChild(bottomScroll);
+
+		topDiv.style.width = width + "px";
+		var hTopHeader = 0;
+
+		for (var i=0; i< fixedRowCount;i++)
+			hTopHeader += table.rows[i].cells[0].offsetHeight;
+	
+		topDiv.style.height = hTopHeader + "px";
+
+		bottomScroll.onscroll = function()
+		{
+			topDiv.scrollLeft = bottomScroll.scrollLeft;
+			contDiv.scrollLeft = bottomScroll.scrollLeft;
+		}
+
+
+		//right Scroll
+		var calced_height = table.offsetHeight;
+		var rightScroll = document.createElement("div");
+		rightScroll.className = "right-scroll";
+		rightScroll.style.height = height + "px";
+		var contentRightScroll = document.createElement("div");
+		contentRightScroll.style.height = calced_height + "px";
+		contentRightScroll.style.width = "1px";
+		rightScroll.appendChild(contentRightScroll);
+		resultDiv.appendChild(rightScroll);
+
+		leftDiv.style.height = height + "px";
+		var wLeftHeader = 0;
+		for (var i=0; i < fixedColCount;i++)
+			wLeftHeader += table.rows[0].cells[i].offsetWidth;
+	
+		leftDiv.style.width = wLeftHeader + "px";
+
+		rightScroll.onscroll = function()
+		{
+			leftDiv.scrollTop = rightScroll.scrollTop;
+			contDiv.scrollTop = rightScroll.scrollTop;
+		}
+
+
+		var corderDiv =  document.createElement("div");
+		corderDiv.className = 'corner';
+		corderDiv.style.width = wLeftHeader + 'px';
+		corderDiv.style.height = hTopHeader + 'px';
+		resultDiv.appendChild(corderDiv);
+	}
+
+	//Фиксируется 2 строки и 2 столбца
+	createTable(document.body, {
+		topHeader: [['Российская федерация', 'USA', 'Canada', 'Монголия', 'Китай', 'Япония', 'Canada', 'Canada', 'Canada', 'Canada'],
+					['Российская федерация', 'USA', 'Canada', 'Монголия', 'Китай', 'Япония', 'Canada', 'Canada', 'Canada', 'Canada']],
+					
+		leftHeader: [
+						['1998', 'Январь'],
+						['1999', 'Январь'],
+						['2000', 'Январь'],
+						['2001', 'Январь'],
+						['2002', 'Январь'],
+						['2003', 'Январь Жопа сиськи письки'],
+						['2002', 'Март']
+					],
+		
+		data : [[null,null,null,null,null,null,null,null,null,null],
+			  [null,null,null,null,null,null,null,null,null,null], 
+		 	  [null,null,null,null,null,null,null,null,null,null], 
+		      [null,null,null,null,null,null,null,null,null,null],
+			  [null,null,null,null,null,null,null,null,null,null], 
+		      [null,null,null,null,null,null,null,null,null,null]]
+	}, 700, 300);
+
+</script>
